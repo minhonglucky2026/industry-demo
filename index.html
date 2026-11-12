@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业带数字化平台 · Industrial Cluster OS</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>window.echarts||document.write('<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"><\/script>')</script>
+<script>window.echarts||document.write('<script src="https://unpkg.com/echarts@5.5.0/dist/echarts.min.js"><\/script>')</script>
+<style>
+:root{--bg:#050B1A;--bg2:#0A1430;--cyan:#00E5FF;--violet:#7C3AED;--orange:#FF7A1A;--green:#22E39B;--red:#FF4D6D;--text:#E6F1FF;--muted:#7F93B8;--line:rgba(0,229,255,.16);--glass:rgba(14,28,60,.55)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Inter,"PingFang SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif;overflow:hidden;font-size:14px}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:rgba(0,229,255,.25);border-radius:6px}
+#bg{position:fixed;inset:0;z-index:0}
+.gridbg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,229,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 40%,#000 30%,transparent 80%)}
+.glow1,.glow2{position:fixed;border-radius:50%;filter:blur(120px);z-index:0;pointer-events:none;opacity:.35}
+.glow1{width:520px;height:520px;background:var(--violet);top:-160px;right:-120px;animation:float 14s ease-in-out infinite}
+.glow2{width:460px;height:460px;background:#0066ff;bottom:-200px;left:10%;animation:float 18s ease-in-out infinite reverse}
+@keyframes float{50%{transform:translate(-60px,40px)}}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:76px 1fr;grid-template-rows:64px 1fr;height:100vh}
+.top{grid-column:1/3;display:flex;align-items:center;gap:18px;padding:0 22px;border-bottom:1px solid var(--line);background:rgba(5,11,26,.7);backdrop-filter:blur(14px);position:relative;z-index:30}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.5px;white-space:nowrap}
+.logo .mark{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 200deg,var(--cyan),var(--violet),var(--cyan));display:grid;place-items:center;box-shadow:0 0 18px rgba(0,229,255,.5);position:relative}
+.logo .mark:after{content:"";position:absolute;inset:3px;border-radius:8px;background:var(--bg)}
+.logo .mark span{position:relative;z-index:1;font-size:15px;color:var(--cyan)}
+.logo small{display:block;font-size:10px;color:var(--muted);font-weight:500;letter-spacing:2px}
+.seg{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:3px;position:relative}
+.seg button{position:relative;z-index:1;background:none;border:0;color:var(--muted);padding:7px 14px;font-size:13px;cursor:pointer;border-radius:9px;transition:.25s;font-family:inherit;white-space:nowrap}
+.seg button.on{color:#001018;font-weight:600}
+.seg .pill{position:absolute;top:3px;bottom:3px;border-radius:9px;background:linear-gradient(90deg,var(--cyan),#5cc8ff);box-shadow:0 0 14px rgba(0,229,255,.55);transition:all .35s cubic-bezier(.6,.1,.2,1)}
+.search{flex:1;max-width:460px;position:relative}
+.search input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:10px 14px 10px 38px;color:var(--text);font-size:13px;outline:none;transition:.25s;font-family:inherit}
+.search input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.12),0 0 20px rgba(0,229,255,.2)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.6}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.sdrop{position:absolute;top:46px;left:0;right:0;background:rgba(10,20,48,.97);border:1px solid var(--line);border-radius:14px;padding:8px;display:none;max-height:380px;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:50}
+.sdrop.show{display:block;animation:pop .2s}
+.sdrop h6{font-size:11px;color:var(--muted);padding:6px 10px;font-weight:500;letter-spacing:1px}
+.sdrop .it{padding:9px 10px;border-radius:9px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.sdrop .it:hover{background:rgba(0,229,255,.1)}
+.sdrop .it em{font-style:normal;color:var(--muted);font-size:12px}
+mark{background:none;color:var(--cyan);font-weight:600}
+.spacer{flex:1}
+.clock{font-family:"JetBrains Mono",Consolas,monospace;font-size:13px;color:var(--cyan);text-align:right;line-height:1.25;white-space:nowrap}
+.clock small{display:block;color:var(--muted);font-size:10px;font-family:inherit}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--cyan));display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);white-space:nowrap}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.side{border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:8px;background:rgba(5,11,26,.5);backdrop-filter:blur(10px);position:relative;z-index:20}
+.nav{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;cursor:pointer;color:var(--muted);position:relative;transition:.25s}
+.nav:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav.on{color:var(--cyan);background:rgba(0,229,255,.1);box-shadow:inset 0 0 0 1px rgba(0,229,255,.35),0 0 18px rgba(0,229,255,.18)}
+.nav.on:before{content:"";position:absolute;left:-12px;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.nav .tip{position:absolute;left:62px;white-space:nowrap;background:rgba(10,20,48,.95);border:1px solid var(--line);padding:5px 10px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transform:translateX(-6px);transition:.2s;color:var(--text);z-index:60}
+.nav:hover .tip{opacity:1;transform:none}
+.nav .badge{position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:var(--orange);font-size:10px;color:#fff;display:grid;place-items:center;padding:0 4px}
+main{overflow:auto;padding:20px 24px 40px;position:relative}
+.page{display:none}
+.page.show{display:block;animation:fadeUp .45s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}}
+@keyframes pop{from{opacity:0;transform:scale(.97)}}
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;gap:12px}
+.head h1{font-size:22px;font-weight:700;letter-spacing:.5px}
+.head h1 span{background:linear-gradient(90deg,var(--cyan),#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+.head p{color:var(--muted);font-size:12.5px;margin-top:4px}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(16px);position:relative;overflow:hidden;transition:border-color .3s,transform .3s,box-shadow .3s}
+.card:before{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(0,229,255,.5),transparent 35%,transparent 65%,rgba(124,58,237,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.card .ct{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0;font-size:14px;font-weight:600;gap:8px}
+.card .ct .t{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.card .ct .t:before{content:"";width:3px;height:14px;border-radius:2px;background:linear-gradient(var(--cyan),var(--violet));box-shadow:0 0 8px var(--cyan)}
+.card .ct small{color:var(--muted);font-weight:400;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px}
+.kpi{padding:16px 18px;cursor:default}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,229,255,.12);border-color:rgba(0,229,255,.4)}
+.kpi .l{color:var(--muted);font-size:12.5px;display:flex;justify-content:space-between;align-items:center}
+.kpi .v{font-size:28px;font-weight:700;margin:8px 0 6px;font-family:"DIN Alternate","Bahnschrift",Inter,sans-serif;letter-spacing:.5px;text-shadow:0 0 18px rgba(0,229,255,.35)}
+.kpi .v small{font-size:13px;color:var(--muted);font-weight:500;margin-left:3px}
+.kpi .tr{font-size:12px}
+.up{color:var(--green)}.down{color:var(--red)}
+.kpi .spark{position:absolute;right:10px;bottom:8px;width:90px;height:34px;opacity:.85}
+.kpi .ico{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:rgba(0,229,255,.1);color:var(--cyan)}
+.ov{display:grid;grid-template-columns:300px 1fr 330px;gap:14px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mapcard{height:612px}
+#map{position:absolute;inset:44px 0 0 0}
+.maptools{display:flex;gap:6px}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);padding:5px 11px;border-radius:999px;font-size:12px;cursor:pointer;transition:.2s;font-family:inherit;white-space:nowrap}
+.chip:hover{color:var(--text);border-color:rgba(0,229,255,.4)}
+.chip.on{color:var(--cyan);border-color:var(--cyan);background:rgba(0,229,255,.1);box-shadow:0 0 12px rgba(0,229,255,.2)}
+.mapstat{position:absolute;left:16px;bottom:14px;font-size:11px;color:var(--muted);z-index:2;display:flex;gap:6px;align-items:center}
+.feed{height:300px;padding:10px 12px 0;overflow:hidden;position:relative}
+.feed:after{content:"";position:absolute;left:0;right:0;bottom:0;height:40px;background:linear-gradient(transparent,rgba(12,24,52,.95))}
+.fi{display:flex;gap:10px;padding:9px 6px;border-bottom:1px dashed rgba(0,229,255,.1);font-size:12.5px;animation:slideIn .5s ease;line-height:1.45}
+@keyframes slideIn{from{opacity:0;transform:translateX(-16px);background:rgba(0,229,255,.12)}}
+.fi .dot{width:28px;height:28px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:12px;background:rgba(124,58,237,.18);color:#c4b5fd}
+.fi b{color:var(--cyan);font-weight:600}
+.fi .tm{color:var(--muted);font-size:11px}
+#rank{height:262px}
+.citypanel{height:612px;display:flex;flex-direction:column}
+.cpbody{padding:14px 16px;overflow:auto;flex:1}
+.cphero{border-radius:12px;padding:16px;background:linear-gradient(135deg,rgba(0,229,255,.14),rgba(124,58,237,.16));border:1px solid rgba(0,229,255,.25);margin-bottom:14px;position:relative;overflow:hidden}
+.cphero:after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(0,229,255,.35);box-shadow:0 0 0 18px rgba(0,229,255,.05),0 0 0 36px rgba(0,229,255,.03)}
+.cphero h2{font-size:22px}
+.cphero .sub{color:var(--muted);font-size:12px;margin-top:2px}
+.cpstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.cpstats div{background:rgba(5,11,26,.5);border-radius:9px;padding:8px}
+.cpstats b{display:block;font-size:16px;color:var(--cyan)}
+.cpstats span{font-size:11px;color:var(--muted)}
+.lbl{font-size:12px;color:var(--muted);margin:12px 0 8px;letter-spacing:1px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:4px 10px;border-radius:7px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.22);color:#9eeaff;white-space:nowrap}
+.tag.v{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.35);color:#c4b5fd}
+.tag.o{background:rgba(255,122,26,.1);border-color:rgba(255,122,26,.35);color:#ffb37a}
+.mini{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;transition:.2s;border:1px solid transparent}
+.mini:hover{background:rgba(0,229,255,.07);border-color:var(--line);transform:translateX(3px)}
+.lg{width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff}
+.mini .n{font-weight:600;font-size:13px}.mini .s{font-size:11.5px;color:var(--muted)}
+.mini .go{margin-left:auto;color:var(--muted);font-size:16px}
+.filters{padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.frow>span{width:44px;color:var(--muted);font-size:12px;flex:none}
+.cgrid{padding-bottom:70px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.co{padding:16px;cursor:pointer}
+.co:hover{transform:translateY(-4px);border-color:rgba(0,229,255,.45);box-shadow:0 14px 36px rgba(0,0,0,.35),0 0 24px rgba(0,229,255,.12)}
+.co .h{display:flex;gap:12px;align-items:center}
+.co .lg{width:46px;height:46px;font-size:17px;border-radius:12px}
+.co h3{font-size:15.5px}
+.co .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.co .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:14px 0 12px;gap:6px}
+.co .nums b{display:block;font-size:16px;font-family:"DIN Alternate",Bahnschrift,Inter,sans-serif}
+.co .nums span{font-size:11px;color:var(--muted)}
+.bar{height:5px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 10px var(--cyan)}
+.co .acts{display:flex;gap:8px;margin-top:14px}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);padding:8px 14px;border-radius:10px;font-size:12.5px;cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;justify-content:center;white-space:nowrap}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.pri{background:linear-gradient(90deg,#FF7A1A,#FF4D6D);border:0;color:#fff;box-shadow:0 6px 20px rgba(255,122,26,.35)}
+.btn.pri:hover{filter:brightness(1.1);color:#fff;transform:translateY(-1px)}
+.btn.cy{background:linear-gradient(90deg,var(--cyan),#4f8bff);border:0;color:#001018;font-weight:600}
+.btn.added{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.1)}
+.btn.f1{flex:1}
+.empty{grid-column:1/-1;text-align:center;padding:70px 0;color:var(--muted)}
+.empty .big{font-size:44px;margin-bottom:10px;opacity:.5}
+.cmpbar{position:fixed;left:50%;bottom:22px;transform:translate(-50%,160%);z-index:40;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 18px;border-radius:16px;background:rgba(10,20,48,.92);border:1px solid rgba(0,229,255,.4);box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 30px rgba(0,229,255,.18);backdrop-filter:blur(16px);transition:transform .45s cubic-bezier(.5,1.6,.4,1)}
+.cmpbar.show{transform:translate(-50%,0)}
+.cmpbar .slots{display:flex;gap:8px}
+.slot{width:150px;height:44px;border-radius:10px;border:1px dashed rgba(0,229,255,.3);display:flex;align-items:center;gap:8px;padding:0 8px;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.slot.f{border-style:solid;color:var(--text);background:rgba(0,229,255,.06)}
+.slot .lg{width:28px;height:28px;font-size:12px;border-radius:8px}
+.slot .x{margin-left:auto;cursor:pointer;opacity:.6}.slot .x:hover{opacity:1;color:var(--red)}
+.mask{position:fixed;inset:0;background:rgba(2,6,16,.6);backdrop-filter:blur(4px);z-index:70;opacity:0;pointer-events:none;transition:.3s}
+.mask.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:620px;max-width:100vw;z-index:80;background:linear-gradient(180deg,rgba(12,24,56,.97),rgba(6,12,30,.98));border-left:1px solid rgba(0,229,255,.35);box-shadow:-20px 0 60px rgba(0,0,0,.5);transform:translateX(105%);transition:transform .45s cubic-bezier(.6,.1,.2,1);display:flex;flex-direction:column}
+.drawer.show{transform:none}
+.dhead{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;position:relative}
+.dhead .lg{width:58px;height:58px;font-size:22px;border-radius:16px}
+.dhead h2{font-size:21px}
+.close{position:absolute;right:18px;top:18px;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:.2s;background:none;font-size:16px}
+.close:hover{color:var(--cyan);border-color:var(--cyan);transform:rotate(90deg)}
+.dbody{flex:1;overflow:auto;padding:18px 24px}
+.dgrid{display:grid;grid-template-columns:1fr 210px;gap:14px}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.info span{display:block;font-size:11px;color:var(--muted)}.info b{font-size:14.5px}
+#gauge{height:190px}
+.prod{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pc{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:rgba(255,255,255,.03);transition:.25s}
+.pc:hover{border-color:var(--cyan);transform:translateY(-3px)}
+.pc .img{height:76px;display:grid;place-items:center;font-size:26px;position:relative;overflow:hidden}
+.pc .img:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0 10px,rgba(255,255,255,.03) 10px 11px)}
+.pc .pt{padding:8px 10px;font-size:12.5px}.pc .pt small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.dfoot{padding:14px 24px;border-top:1px solid var(--line);display:flex;gap:10px}
+.steps{display:flex;margin:4px 0 22px;position:relative}
+.steps .st{flex:1;text-align:center;position:relative;font-size:12px;color:var(--muted)}
+.steps .st .c{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 6px;background:var(--bg2);position:relative;z-index:1;transition:.35s;font-weight:600}
+.steps .st:not(:last-child):after{content:"";position:absolute;top:15px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:rgba(255,255,255,.08)}
+.steps .st.done:not(:last-child):after{background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 0 8px var(--cyan)}
+.steps .st.on .c,.steps .st.done .c{border-color:var(--cyan);color:#001018;background:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,.6)}
+.steps .st.on{color:var(--text)}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.fld input,.fld select,.fld textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:.2s;color-scheme:dark}
+.fld input:focus,.fld textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,229,255,.12)}
+.fld.err input,.fld.err textarea{border-color:var(--red);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.sum{background:rgba(0,229,255,.05);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.9}
+.sum b{color:var(--cyan);font-weight:500}
+.success{text-align:center;padding:30px 0}
+.success svg{width:110px;height:110px}
+.success .ring{stroke:var(--cyan);stroke-width:3;fill:none;stroke-dasharray:320;stroke-dashoffset:320;animation:draw .8s ease forwards;filter:drop-shadow(0 0 8px var(--cyan))}
+.success .chk{stroke:var(--green);stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80;stroke-dashoffset:80;animation:draw .5s .7s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.success h3{font-size:20px;margin:14px 0 6px}
+.success p{color:var(--muted);font-size:13px}
+.burst{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:200}
+.modal{position:fixed;left:50%;top:50%;width:980px;max-width:94vw;max-height:88vh;transform:translate(-50%,-46%) scale(.96);opacity:0;pointer-events:none;z-index:85;transition:.35s;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(12,24,56,.98),rgba(6,12,30,.98));border:1px solid rgba(0,229,255,.4);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 40px rgba(0,229,255,.15)}
+.modal.show{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+.mbody{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:18px 24px 24px;overflow:auto}
+#radar{height:380px}
+table.ct2{width:100%;border-collapse:collapse;font-size:12.5px}
+table.ct2 th,table.ct2 td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.ct2 th{color:var(--muted);font-weight:500}
+table.ct2 td.best{color:var(--green);font-weight:600}
+.dash{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.dash .card{height:340px}
+.ch{position:absolute;inset:44px 8px 8px 8px}
+.alerts{padding:6px 16px;overflow:auto;position:absolute;inset:44px 0 0 0}
+.al{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.al .lv{font-size:11px;padding:3px 8px;border-radius:6px;flex:none}
+.lv.h{background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.4);animation:pulse 1.6s infinite}
+.lv.m{background:rgba(255,122,26,.12);color:#ffb37a;border:1px solid rgba(255,122,26,.35)}
+.lv.l{background:rgba(34,227,155,.1);color:var(--green);border:1px solid rgba(34,227,155,.3)}
+@keyframes pulse{50%{box-shadow:0 0 12px rgba(255,77,109,.6)}}
+.al .d{color:var(--muted);font-size:11.5px}
+.al .v{margin-left:auto;font-weight:600;white-space:nowrap}
+.skel{position:absolute;left:24px;right:24px;top:20px;z-index:5;display:none}
+.skel.show{display:block}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(0,229,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:300% 100%;animation:shim 1.1s infinite;border-radius:14px}
+@keyframes shim{from{background-position:100% 0}to{background-position:0 0}}
+.toast{position:fixed;top:78px;left:50%;transform:translate(-50%,-20px);opacity:0;z-index:300;padding:10px 18px;border-radius:12px;background:rgba(10,20,48,.95);border:1px solid var(--cyan);box-shadow:0 0 24px rgba(0,229,255,.3);font-size:13px;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.foot{margin-top:18px;text-align:center;color:var(--muted);font-size:11.5px;opacity:.75}
+.rolebanner{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.rolebanner b{color:var(--orange);font-weight:600}
+@media(max-width:1200px){.ov{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.dash{grid-template-columns:1fr}.mapcard,.citypanel{height:520px}.live{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div class="gridbg"></div><div class="glow1"></div><div class="glow2"></div>
+<div class="app">
+  <header class="top">
+    <div class="logo"><div class="mark"><span>◆</span></div><div>产业带数字化平台<small>INDUSTRIAL CLUSTER OS</small></div></div>
+    <div class="seg" id="regionSeg"><div class="pill"></div><button data-v="gd" class="on">🇨🇳 广东</button><button data-v="us">🇺🇸 美国</button></div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" placeholder="搜索城市 / 企业 / 产品，如 无人机" autocomplete="off">
+      <kbd>/</kbd>
+      <div class="sdrop" id="sdrop"></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="live"><i></i>实时数据</div>
+    <div class="seg" id="roleSeg"><div class="pill"></div><button data-v="buyer" class="on">采购商</button><button data-v="ops">运营方</button></div>
+    <div class="clock" id="clock">--:--:--<small>北京时间</small></div>
+    <div class="avatar">蒋</div>
+  </header>
+  <aside class="side">
+    <div class="nav on" data-p="overview"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg><span class="tip">总览大屏</span></div>
+    <div class="nav" data-p="companies"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V9l6-4v4l6-4v4l6-4v16z"/><path d="M7 17h2M11 17h2M15 17h2"/></svg><span class="tip">找企业</span><span class="badge" id="cmpBadge" style="display:none">0</span></div>
+    <div class="nav" data-p="dashboard"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/></svg><span class="tip">数据看板</span><span class="badge">2</span></div>
+  </aside>
+  <main id="main">
+    <div class="skel" id="skel"></div>
+    <section class="page show" id="p-overview">
+      <div class="head"><div><h1><span id="ovTitle">广东产业带</span> · 总览大屏</h1><p id="ovSub"></p></div><div class="rolebanner" id="roleBanner"></div></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="ov">
+        <div class="col">
+          <div class="card"><div class="ct"><span class="t">实时询盘</span><small class="live" style="font-size:11px"><i></i>LIVE</small></div><div class="feed" id="feed"></div></div>
+          <div class="card"><div class="ct"><span class="t">热门品类排行</span><small>今日询盘量</small></div><div id="rank"></div></div>
+        </div>
+        <div class="card mapcard"><div class="ct"><span class="t" id="mapTitle">产业地图</span><div class="maptools" id="mapTools"><button class="chip on" data-m="output">按产值</button><button class="chip" data-m="companies">按企业数</button><button class="chip on" id="flowBtn">产业流向 ✓</button></div></div><div id="map"></div><div class="mapstat" id="mapStat"></div></div>
+        <div class="card citypanel"><div class="ct"><span class="t">城市产业带</span><small>点击地图切换</small></div><div class="cpbody" id="cpBody"></div></div>
+      </div>
+      <div class="foot">数据为演示用模拟数据 · 城市与企业名称为真实名称，产值、企业数、询盘等指标均为模拟</div>
+    </section>
+    <section class="page" id="p-companies">
+      <div class="head"><div><h1><span>找企业</span> · 优质企业库</h1><p id="coSub"></p></div><div class="rolebanner"><span>最多选择 4 家企业加入对比</span></div></div>
+      <div class="card filters">
+        <div class="frow"><span>城市</span><div class="frow" id="fCity"></div></div>
+        <div class="frow"><span>产业</span><div class="frow" id="fInd"></div></div>
+        <div class="frow"><span>规模</span><div class="frow" id="fScale"></div><div class="spacer"></div><div class="frow"><span style="width:auto">排序</span><button class="chip on" data-s="rev">营收</button><button class="chip" data-s="resp">响应率</button><button class="chip" data-s="cap">产能利用</button></div></div>
+      </div>
+      <div class="cgrid" id="cgrid"></div>
+      <div class="foot">数据为演示用模拟数据</div>
+    </section>
+    <section class="page" id="p-dashboard">
+      <div class="head"><div><h1><span>数据看板</span> · 产业运行监测</h1><p id="dbSub"></p></div><div class="frow"><button class="chip on" data-y="8">近 8 年</button><button class="chip" data-y="5">近 5 年</button><button class="chip" data-y="3">近 3 年</button></div></div>
+      <div class="dash">
+        <div class="card"><div class="ct"><span class="t">产值趋势</span><small id="unit1"></small></div><div class="ch" id="trend"></div></div>
+        <div class="card"><div class="ct"><span class="t">产业结构</span><small>点击图例筛选</small></div><div class="ch" id="donut"></div></div>
+        <div class="card"><div class="ct"><span class="t">出口地区分布</span><small>占比 %</small></div><div class="ch" id="exportBar"></div></div>
+        <div class="card"><div class="ct"><span class="t">风险预警</span><small id="alCount"></small></div><div class="alerts" id="alerts"></div></div>
+      </div>
+      <div class="foot">数据为演示用模拟数据</div>
+    </section>
+  </main>
+</div>
+<div class="cmpbar" id="cmpbar"><div style="font-size:13px;white-space:nowrap"><b style="color:var(--cyan)" id="cmpN">0</b>/4 对比栏</div><div class="slots" id="slots"></div><button class="btn" id="cmpClear">清空</button><button class="btn cy" id="cmpGo">开始对比 →</button></div>
+<div class="mask" id="mask"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal"><div class="dhead" style="padding:18px 24px"><div><h2>企业对比分析</h2><div style="color:var(--muted);font-size:12px;margin-top:4px">多维能力雷达 · 绿色为该项最优 · 指标为模拟数据</div></div><button class="close" onclick="closeAll()">✕</button></div><div class="mbody"><div id="radar"></div><div id="cmpTable"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ============ DATA（产值、企业数、询盘等指标均为模拟） ============ */
+const COLORS=['#00E5FF','#7C3AED','#FF7A1A','#22E39B','#4F8BFF','#F472B6','#FACC15','#38BDF8','#A78BFA','#FB7185'];
+const R={
+ gd:{name:'广东',unit:'亿元',tz:'Asia/Shanghai',tzName:'北京时间',hub:'深圳',
+  geo:['https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/province/guangdong.json','https://geo.datav.aliyun.com/areas_bound/440000_full.json','https://fastly.jsdelivr.net/npm/echarts@4.9.0/map/json/province/guangdong.json'],
+  view:{center:[114.85,23.12],zoom:1.85},
+  kpi:{companies:186420,output:162800,sku:3268000,inq:28640,exp:38.6},
+  cities:[
+   {name:'深圳',c:[114.06,22.54],out:36200,n:42180,ind:['电子信息','通信','无人机','新能源车'],prod:['手机','通信设备','无人机','电动车','AI 芯片']},
+   {name:'广州',c:[113.26,23.13],out:31500,n:38600,ind:['汽车','服装','美妆','跨境电商'],prod:['整车','女装','化妆品','日化用品']},
+   {name:'佛山',c:[113.12,23.02],out:28800,n:26400,ind:['家电','陶瓷','家具','调味品'],prod:['空调','厨电','瓷砖','定制家具','酱油']},
+   {name:'东莞',c:[113.75,23.02],out:24600,n:31200,ind:['电子制造','玩具','家具','鞋服'],prod:['手机','连接器','潮玩','家具']},
+   {name:'惠州',c:[114.42,23.11],out:11800,n:9800,ind:['电子','锂电','石化'],prod:['电视','动力电池','汽车电子']},
+   {name:'珠海',c:[113.58,22.27],out:8900,n:6200,ind:['家电','打印耗材','游艇'],prod:['空调','打印机','硒鼓']},
+   {name:'中山',c:[113.39,22.52],out:7200,n:11500,ind:['灯饰','小家电','红木家具'],prod:['LED 灯具','小家电','红木家具']},
+   {name:'江门',c:[113.08,22.58],out:6100,n:7300,ind:['摩托车','卫浴','不锈钢'],prod:['摩托车','卫浴','厨具']},
+   {name:'汕头',c:[116.68,23.35],out:4300,n:8600,ind:['玩具','内衣','纺织'],prod:['玩具','内衣','IP 衍生品']},
+   {name:'潮州',c:[116.62,23.66],out:2600,n:5400,ind:['陶瓷','婚纱礼服'],prod:['日用瓷','卫浴陶瓷','婚纱']}],
+  companies:[
+   ['华为','深圳','通信','龙头',['Mate 手机','5G 基站','昇腾 AI 芯片']],['腾讯','深圳','互联网','龙头',['微信','腾讯云','游戏']],['比亚迪','深圳','新能源车','龙头',['新能源乘用车','刀片电池','电动大巴']],['大疆','深圳','无人机','龙头',['消费无人机','手持云台','行业无人机']],['中兴','深圳','通信','大型',['5G 基站','光通信设备','服务器']],['传音','深圳','电子信息','大型',['TECNO 手机','itel 手机','Infinix 手机']],
+   ['OPPO','东莞','电子制造','龙头',['Find 手机','无线耳机','智能手表']],['vivo','东莞','电子制造','龙头',['X 系列手机','影像芯片','平板']],['立讯精密','东莞','电子制造','大型',['连接器','声学模组','智能穿戴']],
+   ['美的','佛山','家电','龙头',['空调','冰箱','工业机器人']],['格兰仕','佛山','家电','大型',['微波炉','烤箱','洗碗机']],['海天味业','佛山','调味品','大型',['酱油','蚝油','调味酱']],['东鹏','佛山','陶瓷','大型',['瓷砖','岩板','卫浴']],
+   ['广汽','广州','汽车','龙头',['埃安电动车','传祺','合资整车']],['SHEIN','广州','跨境电商','龙头',['快时尚女装','家居','配饰']],['唯品会','广州','电商','大型',['品牌特卖','服饰','美妆']],['立白','广州','日化','大型',['洗衣液','洗洁精','洗衣凝珠']],
+   ['格力','珠海','家电','龙头',['空调','压缩机','生活电器']],['纳思达','珠海','打印耗材','大型',['打印机','硒鼓','打印芯片']],
+   ['古镇灯饰产业群','中山','灯饰','产业集群',['LED 灯具','装饰灯','商业照明']],
+   ['TCL','惠州','电子','龙头',['电视','显示面板','光伏']],['德赛','惠州','电子','大型',['汽车电子','电池模组','智能座舱']],['亿纬锂能','惠州','锂电','大型',['动力电池','储能电池','消费锂电']],
+   ['奥飞娱乐','汕头','玩具','中型',['IP 玩具','婴童用品','动画内容']],['四通','潮州','陶瓷','中型',['日用瓷','卫浴陶瓷','艺术瓷']],['大长江(豪爵)','江门','摩托车','大型',['摩托车','踏板车','发动机']]],
+  rank:[['消费电子',8420],['家电',6210],['新能源车',5180],['服装',4630],['无人机',3920],['陶瓷',2860],['灯饰',2410],['玩具',1980]],
+  trend:{years:[2019,2020,2021,2022,2023,2024,2025,2026],out:[108000,110200,124600,129500,136800,145200,154600,162800],exp:[41000,40200,47800,49600,51200,55300,58900,62800]},
+  struct:[['电子信息',32],['家电',16],['汽车',13],['纺织服装',9],['石化',8],['陶瓷建材',6],['灯饰家具',6],['其他',10]],
+  exp:[['东盟',21],['欧盟',18],['美国',16],['中东',11],['拉美',9],['非洲',8],['日韩',7],['其他',10]],
+  alerts:[['h','汕头 · 玩具','出口订单环比下滑','-18.4%'],['h','潮州 · 陶瓷','原材料价格异常上涨','+12.7%'],['m','东莞 · 家具','产能利用率低于 60%','58%'],['m','中山 · 灯饰','海外询盘量连续 3 周下降','-9.2%'],['l','江门 · 摩托车','东盟市场增长强劲','+21.5%'],['l','惠州 · 锂电','储能订单创新高','+34.1%']],
+  buyers:['德国','美国','阿联酋','巴西','越南','印尼','墨西哥','沙特','英国','尼日利亚','日本','泰国']},
+ us:{name:'美国',unit:'亿美元',tz:'America/Los_Angeles',tzName:'美西时间',hub:'硅谷',
+  geo:['https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json','https://fastly.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json'],
+  view:{center:[-97,38.5],zoom:1.2},
+  kpi:{companies:528600,output:286400,sku:9824000,inq:41280,exp:11.2},
+  cities:[
+   {name:'硅谷',c:[-122.03,37.37],out:52800,n:39200,ind:['半导体','互联网','AI'],prod:['芯片','软件','AI 模型','消费电子']},
+   {name:'纽约',c:[-74.0,40.71],out:48600,n:71200,ind:['金融','传媒','时尚'],prod:['金融服务','媒体内容','时尚品牌']},
+   {name:'西雅图',c:[-122.33,47.61],out:31200,n:24100,ind:['云计算','电商','航空'],prod:['云服务','电商平台','客机']},
+   {name:'洛杉矶',c:[-118.24,34.05],out:29400,n:52600,ind:['娱乐','航天','服装'],prod:['影视','火箭','卫星互联网']},
+   {name:'休斯敦',c:[-95.37,29.76],out:26800,n:28400,ind:['石油化工','航天','能源'],prod:['原油','天然气','化工品']},
+   {name:'波士顿',c:[-71.06,42.36],out:19600,n:21800,ind:['生物医药','机器人','教育科研'],prod:['创新药','mRNA 疫苗','机器人']},
+   {name:'底特律',c:[-83.05,42.33],out:18200,n:16900,ind:['汽车','零部件'],prod:['整车','皮卡','动力电池']},
+   {name:'奥斯汀',c:[-97.74,30.27],out:14600,n:15300,ind:['半导体','电动车','软件'],prod:['电动车','服务器','芯片']},
+   {name:'中西部',c:[-89.6,40.7],out:13800,n:33500,ind:['农业','农机','工程机械'],prod:['玉米','大豆','拖拉机','挖掘机']},
+   {name:'达尔顿',c:[-84.97,34.77],out:3200,n:2800,ind:['地毯','地板'],prod:['地毯','硬质地板','瓷砖']}],
+  companies:[
+   ['Apple','硅谷','消费电子','龙头',['iPhone','Mac','Apple Watch']],['Google','硅谷','互联网','龙头',['搜索','Android','Gemini']],['NVIDIA','硅谷','半导体','龙头',['GPU','数据中心芯片','CUDA']],['Meta','硅谷','互联网','龙头',['Facebook','Instagram','Quest VR']],['Intel','硅谷','半导体','大型',['CPU','晶圆代工','FPGA']],
+   ['Amazon','西雅图','电商云计算','龙头',['电商平台','AWS','Kindle']],['Microsoft','西雅图','软件','龙头',['Windows','Azure','Office']],['Boeing','西雅图','航空','龙头',['737 客机','787 客机','防务系统']],
+   ['GM','底特律','汽车','龙头',['雪佛兰','凯迪拉克','Ultium 电池']],['Ford','底特律','汽车','龙头',['F-150','Mustang','商用车']],['Stellantis','底特律','汽车','大型',['Jeep','Ram 皮卡','道奇']],
+   ['Tesla','奥斯汀','电动车','龙头',['Model Y','Cybertruck','Megapack 储能']],['Dell','奥斯汀','电子','大型',['PC','服务器','存储']],
+   ['ExxonMobil','休斯敦','能源化工','龙头',['原油','天然气','化工品']],
+   ['Moderna','波士顿','生物医药','大型',['mRNA 疫苗','肿瘤疗法','呼吸道疫苗']],['Biogen','波士顿','生物医药','大型',['神经科学药物','生物类似药','罕见病药']],['Boston Dynamics','波士顿','机器人','中型',['Spot','Atlas','Stretch']],
+   ['JPMorgan','纽约','金融','龙头',['投资银行','资产管理','零售银行']],['Goldman Sachs','纽约','金融','龙头',['投资银行','财富管理','交易']],
+   ['Disney','洛杉矶','娱乐','龙头',['电影','主题乐园','Disney+']],['SpaceX','洛杉矶','航天','龙头',['猎鹰 9','星链','星舰']],
+   ['John Deere','中西部','农机','龙头',['拖拉机','联合收割机','精准农业']],['Caterpillar','中西部','工程机械','龙头',['挖掘机','发动机','矿山设备']],['ADM','中西部','农业','大型',['粮食加工','饲料','食品配料']],
+   ['Shaw','达尔顿','地毯','大型',['地毯','硬质地板','人造草坪']],['Mohawk','达尔顿','地毯','大型',['地毯','瓷砖','层压地板']]],
+  rank:[['AI 芯片',9680],['云服务',7420],['电动车',6150],['创新药',4870],['农机',3260],['航空',2980],['工程机械',2540],['地毯地板',1220]],
+  trend:{years:[2019,2020,2021,2022,2023,2024,2025,2026],out:[221000,212400,236800,251200,262500,271900,279300,286400],exp:[25200,22800,25900,29100,29800,30600,31400,32100]},
+  struct:[['科技互联网',28],['金融',18],['能源化工',12],['汽车',10],['生物医药',9],['航空航天',8],['农业农机',7],['其他',8]],
+  exp:[['加拿大',17],['墨西哥',16],['欧盟',18],['中国',8],['日本',5],['英国',5],['韩国',4],['其他',27]],
+  alerts:[['h','底特律 · 汽车','电动车产线利用率下滑','-14.6%'],['h','达尔顿 · 地毯','房地产开工放缓影响订单','-11.3%'],['m','休斯敦 · 能源','油价波动影响利润','-6.8%'],['m','波士顿 · 生物医药','临床管线融资收紧','-8.5%'],['l','硅谷 · 半导体','AI 芯片需求持续爆发','+48.2%'],['l','奥斯汀 · 电动车','储能业务高速增长','+27.9%']],
+  buyers:['中国','德国','日本','加拿大','墨西哥','英国','韩国','印度','巴西','法国','新加坡','澳大利亚']}
+};
+function hash(s){let h=2166136261;for(const ch of s)h=Math.imul(h^ch.charCodeAt(0),16777619);return()=>{h=Math.imul(h^(h>>>15),2246822507);h=Math.imul(h^(h>>>13),3266489909);return((h^=h>>>16)>>>0)/4294967296}}
+const ICONS={'通信':'📡','互联网':'🌐','新能源车':'🚗','电动车':'🚗','无人机':'🛸','电子信息':'📱','电子制造':'🔌','家电':'❄️','调味品':'🍶','陶瓷':'🏺','汽车':'🚙','跨境电商':'🛍️','电商':'🛒','日化':'🧴','打印耗材':'🖨️','灯饰':'💡','电子':'📺','锂电':'🔋','玩具':'🧸','摩托车':'🏍️','消费电子':'📱','半导体':'🧠','电商云计算':'☁️','软件':'💻','航空':'✈️','能源化工':'🛢️','生物医药':'🧬','机器人':'🤖','金融':'🏦','娱乐':'🎬','航天':'🚀','农机':'🚜','工程机械':'🏗️','农业':'🌽','地毯':'🧶'};
+Object.entries(R).forEach(([key,reg])=>{
+ reg.companies=reg.companies.map((a,i)=>{const r=hash(a[0]);const big={龙头:1,大型:.55,中型:.25,产业集群:.4}[a[3]];
+  const rev=Math.round(big*(key==='us'?2800:1800)*(0.5+r())*(a[3]==='龙头'?1.6:1));
+  return{id:key[0]+i,name:a[0],city:a[1],ind:a[2],scale:a[3],prod:a[4],rev,emp:Math.round(big*(80000+r()*120000)/(a[3]==='中型'?3:1)),
+   founded:1950+Math.floor(r()*65),cap:Math.round(62+r()*33),resp:Math.round(86+r()*13),score:(4.3+r()*0.7).toFixed(1),
+   dims:[0,0,0,0,0,0].map(()=>Math.round(60+r()*40)),moq:[100,200,500,1000,50][Math.floor(r()*5)],lead:Math.round(7+r()*30),
+   color:COLORS[i%COLORS.length],cert:['ISO9001','ISO14001','CE','UL','BSCI','FCC'].filter(()=>r()>.45)}});
+});
+const DIMS=['研发能力','产能规模','质量体系','交付速度','出口经验','客户口碑'];
+</script>
+<script>
+const S={region:'gd',role:'buyer',page:'overview',city:null,metric:'output',flow:true,q:'',f:{city:'全部',ind:'全部',scale:'全部'},sort:'rev',cmp:[],years:8};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const reg=()=>R[S.region];
+const charts={};
+function chart(id){const el=document.getElementById(id);if(!charts[id]||charts[id].isDisposed()||charts[id].getDom()!==el){charts[id]&&!charts[id].isDisposed()&&charts[id].dispose();charts[id]=echarts.init(el)}return charts[id]}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800)}
+function countUp(el,to,dec=0,dur=1400){const st=performance.now();function f(now){const p=Math.min(1,(now-st)/dur);const e=1-Math.pow(1-p,4);const v=to*e;el.textContent=dec?v.toFixed(dec):Math.round(v).toLocaleString();if(p<1)requestAnimationFrame(f)}requestAnimationFrame(f)}
+const logo=c=>`<div class="lg" style="background:linear-gradient(135deg,${c.color},${c.color}55);box-shadow:0 0 16px ${c.color}55">${/^[A-Za-z]/.test(c.name)?c.name.slice(0,2):c.name.slice(0,1)}</div>`;
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const hl=(t,q)=>q?String(t).replace(new RegExp(esc(q),'ig'),m=>`<mark>${m}</mark>`):t;
+const tipC={backgroundColor:'rgba(10,20,48,.95)',borderColor:'#00E5FF',textStyle:{color:'#E6F1FF'}};
+/* 背景粒子 */
+(function(){const c=$('#bg'),x=c.getContext('2d');let W,H,P=[];function rs(){W=c.width=innerWidth;H=c.height=innerHeight;P=Array.from({length:Math.round(W*H/22000)},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.4+.4}))}rs();addEventListener('resize',rs);
+ function f(){x.clearRect(0,0,W,H);for(const p of P){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;x.fillStyle='rgba(0,229,255,.55)';x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()}
+ for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],d=(a.x-b.x)**2+(a.y-b.y)**2;if(d<12000){x.strokeStyle=`rgba(0,229,255,${.12*(1-d/12000)})`;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}requestAnimationFrame(f)}f()})();
+/* 分段切换 */
+function seg(id,cb){const el=$(id),pill=el.querySelector('.pill');const place=()=>{const b=el.querySelector('button.on');pill.style.left=b.offsetLeft+'px';pill.style.width=b.offsetWidth+'px'};
+ el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.classList.contains('on'))return;el.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');place();cb(b.dataset.v)});requestAnimationFrame(place);addEventListener('resize',place)}
+seg('#regionSeg',v=>{S.region=v;S.city=null;S.f={city:'全部',ind:'全部',scale:'全部'};S.cmp=[];S.q='';$('#q').value='';renderCmp();tick();switchPage(S.page,true);toast(`已切换至「${reg().name}」产业带`)});
+seg('#roleSeg',v=>{S.role=v;switchPage(S.page,true);toast(v==='ops'?'已切换为「运营方」视角':'已切换为「采购商」视角')});
+function tick(){const r=reg(),d=new Date();const t=d.toLocaleTimeString('zh-CN',{timeZone:r.tz,hour12:false});const dt=d.toLocaleDateString('zh-CN',{timeZone:r.tz,month:'2-digit',day:'2-digit',weekday:'short'});$('#clock').innerHTML=`${t}<small>${r.tzName} · ${dt}</small>`}tick();setInterval(tick,1000);
+/* 页面切换 + 骨架屏 */
+$$('.nav').forEach(n=>n.onclick=()=>switchPage(n.dataset.p));
+function skeleton(p){const k=$('#skel');const b='<div class="sk" style="height:46px;width:320px;margin-bottom:16px"></div>';
+ k.innerHTML=p==='overview'?b+`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px">${'<div class="sk" style="height:112px"></div>'.repeat(5)}</div><div style="display:grid;grid-template-columns:300px 1fr 330px;gap:14px"><div class="sk" style="height:612px"></div><div class="sk" style="height:612px"></div><div class="sk" style="height:612px"></div></div>`
+ :p==='companies'?b+`<div class="sk" style="height:132px;margin-bottom:14px"></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">${'<div class="sk" style="height:230px"></div>'.repeat(6)}</div>`
+ :b+`<div style="display:grid;grid-template-columns:2fr 1fr;gap:14px">${'<div class="sk" style="height:340px"></div>'.repeat(4)}</div>`;k.classList.add('show')}
+let swT;function switchPage(p,force){if(p===S.page&&!force)return;S.page=p;$$('.nav').forEach(n=>n.classList.toggle('on',n.dataset.p===p));$('#main').scrollTop=0;skeleton(p);
+ $$('.page').forEach(x=>x.classList.remove('show'));clearTimeout(swT);renderCmp();
+ swT=setTimeout(()=>{$('#skel').classList.remove('show');$('#p-'+p).classList.add('show');({overview:renderOverview,companies:renderCompanies,dashboard:renderDashboard})[p]()},420)}
+/* ============ 总览 ============ */
+function spark(seed){const r=hash(seed);let v=50;const pts=Array.from({length:14},(_,i)=>{v+=(r()-.4)*14;return [i*7,34-Math.max(4,Math.min(30,v/3))]});const id='g'+Math.abs(seed.length*7+pts[3][1]|0)+Math.floor(r()*1e6);return `<svg class="spark" viewBox="0 0 91 34"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#00E5FF" stop-opacity=".35"/><stop offset="1" stop-color="#00E5FF" stop-opacity="0"/></linearGradient></defs><path d="M${pts.map(p=>p.join(',')).join(' L')} L91,34 L0,34Z" fill="url(#${id})"/><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#00E5FF" stroke-width="1.5"/></svg>`}
+function renderOverview(){const r=reg();$('#ovTitle').textContent=r.name+'产业带';$('#ovSub').textContent=`覆盖 ${r.cities.length} 大城市产业集群 · ${r.companies.length} 家代表企业 · 点击地图城市查看产业带详情`;
+ $('#roleBanner').innerHTML=S.role==='ops'?'当前视角：<b>运营方</b> · 关注产业运行与招商':'当前视角：<b>采购商</b> · 关注找厂与询盘';
+ const k=r.kpi;const list=S.role==='ops'?[['企业总数',k.companies,0,'家','+6.8%',1,'🏢'],['年产值',k.output,0,r.unit,'+5.3%',1,'📈'],['在售 SKU',k.sku,0,'个','+12.1%',1,'📦'],['今日询盘',k.inq,0,'条','+18.4%',1,'💬'],['出口占比',k.exp,1,'%','-0.6%',0,'🌏']]
+  :[['可合作企业',Math.round(k.companies*.42),0,'家','+4.2%',1,'🤝'],['平均响应',12.6,1,'分钟','-8.3%',1,'⚡'],['在售 SKU',k.sku,0,'个','+12.1%',1,'📦'],['今日询盘',k.inq,0,'条','+18.4%',1,'💬'],['出口占比',k.exp,1,'%','-0.6%',0,'🌏']];
+ $('#kpis').innerHTML=list.map((x,i)=>`<div class="card kpi"><div class="l">${x[0]}<span class="ico">${x[6]}</span></div><div class="v"><span data-to="${x[1]}" data-d="${x[2]}" ${x[0]==='今日询盘'?'id="inqKpi"':''}>0</span><small>${x[3]}</small></div><div class="tr ${x[5]?'up':'down'}">${x[4].startsWith('-')?'▼':'▲'} ${x[4].replace(/^[-+]/,'')} <span style="color:var(--muted)">较上月</span></div>${spark(r.name+S.role+i)}</div>`).join('');
+ $$('#kpis [data-to]').forEach(e=>countUp(e,+e.dataset.to,+e.dataset.d));
+ $('#feed').innerHTML='';for(let i=0;i<6;i++)pushFeed(true);
+ renderRank();if(!S.city)S.city=r.hub;renderMap();renderCity()}
+function pushFeed(init){const r=reg(),rnd=Math.random;const c=r.companies[Math.floor(rnd()*r.companies.length)];const b=r.buyers[Math.floor(rnd()*r.buyers.length)];const p=c.prod[Math.floor(rnd()*c.prod.length)];const q=[200,500,1000,2000,5000,10000][Math.floor(rnd()*6)];
+ const el=document.createElement('div');el.className='fi';el.innerHTML=`<div class="dot">${b.slice(0,1)}</div><div>来自<b>${b}</b>的采购商向 <b>${c.name}</b> 询价「${p}」× ${q.toLocaleString()}<div class="tm">${init?Math.floor(rnd()*50+3)+' 秒前':'刚刚'} · ${c.city}</div></div>`;const f=$('#feed');f.prepend(el);while(f.children.length>9)f.lastChild.remove();
+ if(!init){const k=$('#inqKpi');if(k){const v=parseInt(k.textContent.replace(/,/g,''))||0;k.textContent=(v+1).toLocaleString()}}}
+setInterval(()=>{if(S.page==='overview'&&!document.hidden&&$('#p-overview').classList.contains('show'))pushFeed()},2600);
+function renderRank(){const d=[...reg().rank].reverse();chart('rank').setOption({grid:{left:70,right:44,top:8,bottom:8},xAxis:{show:false,max:d[d.length-1][1]*1.12},yAxis:{type:'category',data:d.map(x=>x[0]),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#AFC3E6',fontSize:12}},tooltip:{trigger:'axis',axisPointer:{type:'shadow'},...tipC},
+ series:[{type:'bar',name:'询盘量',data:d.map(x=>x[1]),barWidth:10,showBackground:true,backgroundStyle:{color:'rgba(255,255,255,.04)',borderRadius:6},itemStyle:{borderRadius:6,color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#7C3AED'},{offset:1,color:'#00E5FF'}]),shadowColor:'#00E5FF',shadowBlur:8},label:{show:true,position:'right',color:'#00E5FF',fontSize:11},animationDuration:1200}]},true)}
+/* 地图：先尝试行政区底图，失败降级为坐标网格 */
+const GEO={};
+async function fetchJSON(u,ms=6000){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal,referrerPolicy:'no-referrer'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
+async function loadGeo(k){if(GEO[k])return;GEO[k]='loading';for(const u of R[k].geo){try{const j=await fetchJSON(u);echarts.registerMap('m_'+k,j,k==='us'?{Alaska:{left:-131,top:25,width:15},Hawaii:{left:-110,top:28,width:5},'Puerto Rico':{left:-76,top:26,width:2}}:undefined);GEO[k]='ok';break}catch(e){console.info('[地图] 底图源不可用，尝试下一个：',u)}}
+ if(GEO[k]!=='ok')GEO[k]='fail';if(S.region===k&&S.page==='overview')renderMap()}
+function renderMap(){const r=reg(),k=S.region;if(!GEO[k])loadGeo(k);const st=GEO[k];const useGeo=st==='ok';const mtxt=S.metric==='output'?'年产值':'企业数';
+ $('#mapTitle').textContent=r.name+' 产业地图';$('#mapStat').innerHTML=st==='loading'?'<span class="live"><i></i>底图加载中…</span>':useGeo?`● 行政区底图 · 光点大小 = ${mtxt} · 滚轮缩放 / 拖拽平移`:`● 坐标网格模式（底图离线已降级） · 光点大小 = ${mtxt}`;
+ const val=c=>S.metric==='output'?c.out:c.n;const mx=Math.max(...r.cities.map(val));
+ const pts=r.cities.map(c=>({name:c.name,value:[...c.c,val(c)],city:c}));
+ const hub=r.cities.find(c=>c.name===S.city)||r.cities[0];
+ const lines=S.flow?r.cities.filter(c=>c!==hub).map(c=>({coords:[hub.c,c.c]})):[];
+ const cs=useGeo?{coordinateSystem:'geo'}:{coordinateSystem:'cartesian2d'};
+ const series=[
+  {type:'lines',...cs,zlevel:2,data:lines,effect:{show:true,period:3.5,trailLength:.5,symbol:'arrow',symbolSize:6,color:'#00E5FF'},lineStyle:{color:'#7C3AED',width:1.2,opacity:.55,curveness:.25},silent:true},
+  {type:'effectScatter',...cs,zlevel:3,data:pts,symbolSize:v=>10+Math.sqrt(v[2]/mx)*28,rippleEffect:{brushType:'stroke',scale:3.2,period:3.5},
+   itemStyle:{color:p=>p.name===S.city?'#FF7A1A':'#00E5FF',shadowBlur:20,shadowColor:'#00E5FF'},
+   label:{show:true,formatter:'{b}',position:'right',color:'#E6F1FF',fontSize:12,fontWeight:600,textShadowColor:'#000',textShadowBlur:6},emphasis:{scale:1.4,label:{color:'#00E5FF',fontSize:14}}}];
+ const opt={tooltip:{trigger:'item',...tipC,formatter:p=>p.data&&p.data.city?`<b style="color:#00E5FF;font-size:14px">${p.name}</b><br/>年产值：${p.data.city.out.toLocaleString()} ${r.unit}<br/>企业数：${p.data.city.n.toLocaleString()} 家<br/>主导产业：${p.data.city.ind.join(' / ')}<br/><span style="color:#7F93B8">点击查看详情</span>`:''},series};
+ if(useGeo)opt.geo={map:'m_'+k,roam:true,center:r.view.center,zoom:r.view.zoom,label:{show:false},itemStyle:{areaColor:'rgba(0,70,140,.35)',borderColor:'rgba(0,229,255,.55)',borderWidth:1,shadowColor:'rgba(0,229,255,.5)',shadowBlur:12},emphasis:{itemStyle:{areaColor:'rgba(124,58,237,.45)'},label:{show:true,color:'#fff'}},select:{disabled:true},tooltip:{show:false}};
+ else{const xs=r.cities.map(c=>c.c[0]),ys=r.cities.map(c=>c.c[1]);const px=(Math.max(...xs)-Math.min(...xs))*.12+.3,py=(Math.max(...ys)-Math.min(...ys))*.18+.3;
+  const ax=(mn,mx2,s)=>({type:'value',min:+mn.toFixed(1),max:+mx2.toFixed(1),splitNumber:8,splitLine:{lineStyle:{color:'rgba(0,229,255,.08)',type:'dashed'}},axisLine:{lineStyle:{color:'rgba(0,229,255,.25)'}},axisLabel:{color:'#4d6390',fontSize:10,formatter:v=>v.toFixed(1)+s}});
+  opt.grid={left:44,right:40,top:20,bottom:44};opt.xAxis=ax(Math.min(...xs)-px,Math.max(...xs)+px,'°');opt.yAxis=ax(Math.min(...ys)-py,Math.max(...ys)+py,'°')}
+ const m=chart('map');m.setOption(opt,true);m.off('click');m.on('click',p=>{if(p.data&&p.data.city){S.city=p.name;renderCity(true);renderMap()}})}
+function renderCity(anim){const r=reg();const c=r.cities.find(x=>x.name===S.city)||r.cities[0];const cos=r.companies.filter(x=>x.city===c.name);const b=$('#cpBody');const tot=r.cities.reduce((s,x)=>s+x.out,0);
+ b.innerHTML=`<div class="cphero"><div class="sub">${r.name} · 产业带城市</div><h2>${c.name}</h2><div class="cpstats"><div><b data-to="${c.out}">0</b><span>年产值(${r.unit})</span></div><div><b data-to="${c.n}">0</b><span>企业数</span></div><div><b>${(c.out/tot*100).toFixed(1)}%</b><span>产值占比</span></div></div></div>
+ <div class="lbl">主导产业带</div><div class="tags">${c.ind.map(i=>`<span class="tag">${i}</span>`).join('')}</div>
+ <div class="lbl">代表产品</div><div class="tags">${c.prod.map(i=>`<span class="tag v">${i}</span>`).join('')}</div>
+ <div class="lbl">代表企业 · ${cos.length} 家</div>${cos.map(x=>`<div class="mini" data-id="${x.id}">${logo(x)}<div><div class="n">${x.name}</div><div class="s">${x.ind} · ${x.scale} · 营收 ${x.rev.toLocaleString()} ${r.unit}</div></div><span class="go">›</span></div>`).join('')}
+ <button class="btn cy" id="cityAll" style="width:100%;margin-top:12px">查看 ${c.name} 全部企业 →</button>`;
+ $('#cityAll').onclick=()=>{S.f={city:c.name,ind:'全部',scale:'全部'};switchPage('companies')};
+ b.querySelectorAll('[data-to]').forEach(e=>countUp(e,+e.dataset.to,0,900));b.querySelectorAll('.mini').forEach(m=>m.onclick=()=>openDetail(m.dataset.id));if(anim)b.animate([{opacity:0,transform:'translateX(20px)'},{opacity:1,transform:'none'}],{duration:400,easing:'ease-out'})}
+$$('#mapTools [data-m]').forEach(b=>b.onclick=()=>{$$('#mapTools [data-m]').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.metric=b.dataset.m;renderMap()});
+$('#flowBtn').onclick=e=>{S.flow=!S.flow;e.currentTarget.classList.toggle('on',S.flow);e.currentTarget.textContent='产业流向 '+(S.flow?'✓':'');renderMap()};
+</script>
+<script>
+/* ============ 找企业 ============ */
+function chips(el,opts,key){el.innerHTML=opts.map(o=>`<button class="chip ${S.f[key]===o?'on':''}">${o}</button>`).join('');el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{S.f[key]=b.textContent;chips(el,opts,key);renderGrid()})}
+function renderCompanies(){const r=reg();chips($('#fCity'),['全部',...r.cities.map(c=>c.name)],'city');chips($('#fInd'),['全部',...new Set(r.companies.map(c=>c.ind))],'ind');chips($('#fScale'),['全部','龙头','大型','中型','产业集群'],'scale');renderGrid()}
+$$('[data-s]').forEach(b=>b.onclick=()=>{$$('[data-s]').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.sort=b.dataset.s;renderGrid()});
+function matchQ(c,q){q=q.toLowerCase();return !q||[c.name,c.city,c.ind,...c.prod].some(s=>s.toLowerCase().includes(q))}
+function renderGrid(){const r=reg();const q=S.q.trim();let L=r.companies.filter(c=>(S.f.city==='全部'||c.city===S.f.city)&&(S.f.ind==='全部'||c.ind===S.f.ind)&&(S.f.scale==='全部'||c.scale===S.f.scale)&&matchQ(c,q));
+ L.sort((a,b)=>S.sort==='rev'?b.rev-a.rev:S.sort==='resp'?b.resp-a.resp:b.cap-a.cap);
+ $('#coSub').textContent=`${r.name} · 共 ${L.length} 家企业符合条件${q?`（搜索「${q}」）`:''} · 指标为模拟数据`;
+ $('#cgrid').innerHTML=L.length?L.map((c,i)=>`<div class="card co" data-id="${c.id}" style="animation:fadeUp .4s ${i*0.03}s both">
+  <div class="h">${logo(c)}<div style="min-width:0"><h3>${hl(c.name,q)}</h3><div class="meta">📍 ${hl(c.city,q)} · ${ICONS[c.ind]||'🏭'} ${hl(c.ind,q)} · 成立 ${c.founded}</div></div><span class="tag ${c.scale==='龙头'?'o':'v'}" style="margin-left:auto;flex:none">${c.scale}</span></div>
+  <div class="nums"><div><b>${c.rev.toLocaleString()}</b><span>营收(${r.unit})</span></div><div><b>${c.resp}%</b><span>询盘响应率</span></div><div><b>⭐ ${c.score}</b><span>买家评分</span></div></div>
+  <div style="font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between">产能利用率<span style="color:var(--cyan)">${c.cap}%</span></div><div class="bar"><i style="width:${c.cap}%"></i></div>
+  <div class="tags" style="margin-top:12px">${c.prod.map(p=>`<span class="tag">${hl(p,q)}</span>`).join('')}</div>
+  <div class="acts"><button class="btn pri f1" data-act="inq">发询盘</button><button class="btn f1 ${S.cmp.includes(c.id)?'added':''}" data-act="cmp">${S.cmp.includes(c.id)?'✓ 已加入对比':'+ 加入对比'}</button></div></div>`).join('')
+  :`<div class="empty"><div class="big">🔍</div>没有找到符合条件的企业<br><button class="btn" id="resetF" style="margin-top:14px">重置筛选</button></div>`;
+ const rf=$('#resetF');if(rf)rf.onclick=()=>{S.q='';$('#q').value='';S.f={city:'全部',ind:'全部',scale:'全部'};renderCompanies()};
+ $$('#cgrid .co').forEach(el=>el.onclick=e=>{const a=e.target.closest('[data-act]');const id=el.dataset.id;if(a){e.stopPropagation();a.dataset.act==='cmp'?toggleCmp(id):openDetail(id,true)}else openDetail(id)})}
+function byId(id){for(const k in R){const c=R[k].companies.find(c=>c.id===id);if(c)return c}}
+function toggleCmp(id){const i=S.cmp.indexOf(id);if(i>=0)S.cmp.splice(i,1);else{if(S.cmp.length>=4){toast('对比栏最多 4 家企业');return}S.cmp.push(id);toast(`已加入对比：${byId(id).name}`)}renderCmp();if(S.page==='companies')renderGrid()}
+function renderCmp(){const n=S.cmp.length;$('#cmpN').textContent=n;$('#cmpbar').classList.toggle('show',n>0&&S.page==='companies');$('#cmpBadge').style.display=n?'grid':'none';$('#cmpBadge').textContent=n;
+ $('#slots').innerHTML=[0,1,2,3].map(i=>{const c=S.cmp[i]&&byId(S.cmp[i]);return c?`<div class="slot f">${logo(c)}<span>${c.name}</span><span class="x" data-x="${c.id}">✕</span></div>`:`<div class="slot">+ 待添加</div>`}).join('');
+ $$('#slots [data-x]').forEach(x=>x.onclick=()=>toggleCmp(x.dataset.x))}
+$('#cmpClear').onclick=()=>{S.cmp=[];renderCmp();if(S.page==='companies')renderGrid()};
+$('#cmpGo').onclick=()=>{if(S.cmp.length<2){toast('请至少选择 2 家企业进行对比');return}openCompare()};
+function openCompare(){const L=S.cmp.map(byId),u=reg().unit;$('#mask').classList.add('show');$('#modal').classList.add('show');
+ setTimeout(()=>{chart('radar').setOption({color:L.map(c=>c.color),legend:{bottom:0,textStyle:{color:'#AFC3E6'}},tooltip:tipC,radar:{indicator:DIMS.map(d=>({name:d,max:100})),radius:'62%',splitNumber:4,axisName:{color:'#AFC3E6'},splitLine:{lineStyle:{color:'rgba(0,229,255,.2)'}},splitArea:{areaStyle:{color:['rgba(0,229,255,.02)','rgba(0,229,255,.05)']}},axisLine:{lineStyle:{color:'rgba(0,229,255,.2)'}}},
+  series:[{type:'radar',data:L.map(c=>({name:c.name,value:c.dims,areaStyle:{opacity:.18},lineStyle:{width:2,shadowBlur:10,shadowColor:c.color},symbolSize:5}))}]},true);charts.radar.resize()},80);
+ const rows=[['所在城市',c=>c.city],['产业',c=>c.ind],['营收('+u+')',c=>c.rev,1],['员工数',c=>c.emp,1],['产能利用率',c=>c.cap,1,'%'],['响应率',c=>c.resp,1,'%'],['起订量(件)',c=>c.moq,-1],['交期(天)',c=>c.lead,-1],['综合得分',c=>Math.round(c.dims.reduce((a,b)=>a+b)/6),1]];
+ $('#cmpTable').innerHTML=`<table class="ct2"><tr><th></th>${L.map(c=>`<th style="color:${c.color};font-weight:600">${c.name}</th>`).join('')}</tr>${rows.map(([n,f,dir,sf])=>{const vals=L.map(f);const best=dir?(dir>0?Math.max(...vals):Math.min(...vals)):null;return `<tr><th>${n}</th>${vals.map(v=>`<td class="${dir&&v===best?'best':''}">${typeof v==='number'?v.toLocaleString()+(sf||''):v}</td>`).join('')}</tr>`}).join('')}</table>`}
+/* ============ 企业详情 / 询盘 ============ */
+let cur=null,step=0,form={};
+function openDetail(id,inq){cur=byId(id);const c=cur,r=reg();$('#mask').classList.add('show');const d=$('#drawer');
+ d.innerHTML=`<div class="dhead">${logo(c)}<div><h2>${c.name}</h2><div style="color:var(--muted);font-size:12.5px;margin-top:6px">📍 ${r.name} · ${c.city}　${ICONS[c.ind]||'🏭'} ${c.ind}　<span class="tag o">${c.scale}</span></div></div><button class="close" onclick="closeAll()">✕</button></div><div class="dbody" id="dbody"></div><div class="dfoot" id="dfoot"></div>`;
+ d.classList.add('show');inq?startInq():showInfo()}
+function showInfo(){const c=cur,r=reg();$('#dbody').innerHTML=`<div class="dgrid"><div class="info">
+  <div><span>年营收</span><b>${c.rev.toLocaleString()} ${r.unit}</b></div><div><span>员工规模</span><b>${c.emp.toLocaleString()} 人</b></div><div><span>成立年份</span><b>${c.founded}</b></div><div><span>买家评分</span><b>⭐ ${c.score}</b></div>
+  <div><span>起订量 MOQ</span><b>${c.moq} 件</b></div><div><span>平均交期</span><b>${c.lead} 天</b></div><div><span>询盘响应率</span><b>${c.resp}%</b></div><div><span>认证资质</span><b style="font-size:12.5px">${c.cert.join(' · ')||'ISO9001'}</b></div></div>
+  <div class="card" style="padding:0"><div class="ct" style="padding:10px 12px 0"><span class="t">产能利用率</span></div><div id="gauge"></div></div></div>
+  <div class="lbl" style="margin-top:18px">主营产品</div><div class="prod">${c.prod.map((p,i)=>`<div class="pc"><div class="img" style="background:linear-gradient(135deg,${COLORS[(i+2)%10]}33,${c.color}22)">${ICONS[c.ind]||'📦'}</div><div class="pt">${p}<small>起订 ${(c.moq*(i+1)).toLocaleString()} 件 · ${c.lead+i*3} 天交付</small></div></div>`).join('')}</div>
+  <div class="lbl" style="margin-top:18px">能力画像</div><div>${DIMS.map((d,i)=>`<div style="display:flex;align-items:center;gap:10px;font-size:12px;margin-bottom:8px"><span style="width:64px;color:var(--muted)">${d}</span><div class="bar" style="flex:1;margin:0"><i style="width:0;transition:width 1s ${i*.08}s" data-w="${c.dims[i]}"></i></div><b style="width:28px;text-align:right;color:var(--cyan)">${c.dims[i]}</b></div>`).join('')}</div>
+  <div class="lbl" style="margin-top:14px;opacity:.7">* 指标为演示用模拟数据</div>`;
+ $('#dfoot').innerHTML=`<button class="btn f1 ${S.cmp.includes(c.id)?'added':''}" id="dCmp">${S.cmp.includes(c.id)?'✓ 已加入对比':'+ 加入对比'}</button><button class="btn pri f1" id="dInq">💬 发起询盘</button>`;
+ $('#dCmp').onclick=()=>{toggleCmp(c.id);showInfo()};$('#dInq').onclick=startInq;
+ setTimeout(()=>{$$('#dbody [data-w]').forEach(e=>e.style.width=e.dataset.w+'%');if(!$('#gauge'))return;chart('gauge').setOption({series:[{type:'gauge',startAngle:210,endAngle:-30,min:0,max:100,radius:'92%',center:['50%','58%'],progress:{show:true,width:12,roundCap:true,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#7C3AED'},{offset:1,color:'#00E5FF'}]),shadowBlur:12,shadowColor:'#00E5FF'}},axisLine:{roundCap:true,lineStyle:{width:12,color:[[1,'rgba(255,255,255,.06)']]}},pointer:{show:false},axisTick:{show:false},splitLine:{show:false},axisLabel:{show:false},anchor:{show:false},title:{offsetCenter:[0,'38%'],color:'#7F93B8',fontSize:11},detail:{valueAnimation:true,offsetCenter:[0,'-2%'],fontSize:30,fontWeight:700,color:'#E6F1FF',formatter:'{value}%'},data:[{value:c.cap,name:'当前产能负荷'}]}]},true)},120)}
+const STEPS=['需求','规格','数量交期','联系方式'];
+function startInq(){step=0;form={type:'采购现货',prod:cur.prod[0],desc:'',spec:'',color:'',pack:'标准包装',cert:'CE',qty:'',date:'',port:'',name:'',co:'',phone:'',email:''};renderStep()}
+function renderStep(){const c=cur;const opt=(k,arr)=>`<div class="opts">${arr.map(a=>`<button class="chip ${form[k]===a?'on':''}" data-k="${k}" data-v="${a}">${a}</button>`).join('')}</div>`;
+ const inp=(k,l,ph,t='text')=>`<div class="fld" data-f="${k}"><label>${l}</label><input type="${t}" data-i="${k}" value="${form[k]}" placeholder="${ph}"></div>`;
+ const bodies=[`<div class="fld"><label>询盘类型</label>${opt('type',['采购现货','OEM 代工','ODM 定制','寻求合作'])}</div><div class="fld"><label>意向产品</label>${opt('prod',c.prod)}</div><div class="fld" data-f="desc"><label>需求描述 *</label><textarea rows="4" data-i="desc" placeholder="请描述您的采购需求，如用途、目标市场、质量要求等">${form.desc}</textarea></div>`,
+  `${inp('spec','规格型号 *','如：220V / 1.5 匹 / 白色')}${inp('color','颜色 / 材质','如：哑光黑、304 不锈钢')}<div class="fld"><label>包装方式</label>${opt('pack',['标准包装','定制彩盒','中性包装','托盘出货'])}</div><div class="fld"><label>认证要求</label>${opt('cert',['CE','FCC','UL','RoHS','无'])}</div>`,
+  `<div class="row2">${inp('qty','采购数量 *','最低起订 '+c.moq+' 件','number')}${inp('date','期望交期 *','','date')}</div>${inp('port','目的港 / 收货地','如：汉堡港、洛杉矶港')}<div class="sum">💡 该企业起订量 <b>${c.moq} 件</b>，平均交期 <b>${c.lead} 天</b>，当前产能负荷 <b>${c.cap}%</b>，${c.cap>85?'排期偏紧，建议尽早下单':'产能充足，可快速排产'}。</div>`,
+  `<div class="row2">${inp('name','联系人 *','您的姓名')}${inp('co','公司名称','您的公司')}</div><div class="row2">${inp('phone','手机号 *','用于接收报价通知','tel')}${inp('email','邮箱','name@company.com','email')}</div>
+   <div class="sum">询盘摘要：向 <b>${c.name}</b> 询价 <b>${form.prod}</b>（${form.type}）· 规格 <b>${form.spec||'-'}</b> · 数量 <b>${form.qty||'-'}</b> 件 · 交期 <b>${form.date||'-'}</b></div>`];
+ $('#dbody').innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="st ${i<step?'done':i===step?'on':''}"><div class="c">${i<step?'✓':i+1}</div>${s}</div>`).join('')}</div><div id="stb">${bodies[step]}</div>`;
+ $('#stb').animate([{opacity:0,transform:'translateX(24px)'},{opacity:1,transform:'none'}],{duration:320,easing:'ease-out'});
+ $$('#stb [data-k]').forEach(b=>b.onclick=()=>{form[b.dataset.k]=b.dataset.v;b.parentNode.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b))});
+ $$('#stb [data-i]').forEach(i=>i.oninput=()=>{form[i.dataset.i]=i.value;i.closest('.fld').classList.remove('err')});
+ $('#dfoot').innerHTML=`<button class="btn f1" id="sPrev">${step?'← 上一步':'← 返回详情'}</button><button class="btn ${step===3?'pri':'cy'} f1" id="sNext">${step===3?'🚀 提交询盘':'下一步 →'}</button>`;
+ $('#sPrev').onclick=()=>{if(step){step--;renderStep()}else showInfo()};
+ $('#sNext').onclick=()=>{const req=[['desc'],['spec'],['qty','date'],['name','phone']][step];const bad=req.filter(k=>!String(form[k]).trim());$$('#stb .fld').forEach(f=>f.classList.toggle('err',bad.includes(f.dataset.f)));if(bad.length){toast('请填写带 * 的必填项');return}if(step<3){step++;renderStep()}else submitInq()}}
+function submitInq(){const b=$('#sNext');b.innerHTML='提交中…';b.disabled=true;setTimeout(()=>{const no='INQ'+Date.now().toString().slice(-8);
+ $('#dbody').innerHTML=`<div class="success"><svg viewBox="0 0 110 110"><circle class="ring" cx="55" cy="55" r="50"/><path class="chk" d="M33 57 L49 72 L78 40"/></svg><h3>询盘已发送至 ${cur.name}</h3><p>询盘编号 <b style="color:var(--cyan)">${no}</b> · 预计 <b style="color:var(--cyan)">${Math.max(5,Math.round(30-cur.resp/4))} 分钟</b>内收到报价</p>
+ <div class="sum" style="text-align:left;margin:22px auto 0;max-width:420px">📦 ${form.prod} · ${form.type}<br>📐 ${form.spec}<br>🔢 ${Number(form.qty).toLocaleString()} 件 · 交期 ${form.date}<br>👤 ${form.name} ${form.phone}</div></div>`;
+ $('#dfoot').innerHTML=`<button class="btn f1" id="bkInfo">返回企业详情</button><button class="btn cy f1" id="done">完成</button>`;$('#bkInfo').onclick=showInfo;$('#done').onclick=closeAll;burst();
+ const f=$('#feed');if(f){const el=document.createElement('div');el.className='fi';el.innerHTML=`<div class="dot" style="background:rgba(255,122,26,.2);color:#ffb37a">我</div><div>你向 <b>${cur.name}</b> 询价「${form.prod}」× ${Number(form.qty).toLocaleString()}<div class="tm">刚刚 · ${cur.city}</div></div>`;f.prepend(el)}},900)}
+function burst(){const cx=innerWidth-310,cy=240;for(let i=0;i<50;i++){const p=document.createElement('div');p.className='burst';p.style.background=COLORS[i%5];p.style.left=cx+'px';p.style.top=cy+'px';document.body.appendChild(p);const a=Math.random()*Math.PI*2,d=80+Math.random()*170;
+ p.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d+60}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>p.remove()}}
+function closeAll(){$('#mask').classList.remove('show');$('#drawer').classList.remove('show');$('#modal').classList.remove('show')}
+$('#mask').onclick=closeAll;
+/* ============ 数据看板 ============ */
+const axisC={axisLine:{lineStyle:{color:'rgba(0,229,255,.25)'}},axisLabel:{color:'#7F93B8'},splitLine:{lineStyle:{color:'rgba(0,229,255,.07)',type:'dashed'}}};
+function renderDashboard(){const r=reg();$('#dbSub').textContent=`${r.name} · ${S.role==='ops'?'运营方完整视角':'采购商可见公开数据'} · 指标为模拟数据`;$('#unit1').textContent='单位：'+r.unit;
+ const n=S.years,t=r.trend,grad=(c1,c2)=>new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c1},{offset:1,color:c2}]);
+ chart('trend').setOption({tooltip:{trigger:'axis',...tipC},legend:{right:12,top:2,textStyle:{color:'#AFC3E6'}},grid:{left:16,right:24,top:44,bottom:8,containLabel:true},xAxis:{type:'category',data:t.years.slice(-n),boundaryGap:false,...axisC,splitLine:{show:false}},yAxis:{type:'value',...axisC},
+  series:[{name:'总产值',type:'line',smooth:true,data:t.out.slice(-n),symbolSize:7,lineStyle:{width:3,color:'#00E5FF',shadowBlur:14,shadowColor:'#00E5FF'},itemStyle:{color:'#00E5FF'},areaStyle:{color:grad('rgba(0,229,255,.35)','rgba(0,229,255,0)')},markPoint:{data:[{type:'max',name:'最高'}],itemStyle:{color:'#FF7A1A'},symbolSize:46,label:{fontSize:10,color:'#fff',formatter:p=>(p.value/10000).toFixed(1)+'万'}}},
+   {name:'出口额',type:'line',smooth:true,data:t.exp.slice(-n),symbolSize:6,lineStyle:{width:2,color:'#A78BFA'},itemStyle:{color:'#A78BFA'},areaStyle:{color:grad('rgba(124,58,237,.35)','rgba(124,58,237,0)')}}]},true);
+ chart('donut').setOption({color:COLORS,tooltip:{trigger:'item',formatter:'{b}：{c}%',...tipC},legend:{orient:'vertical',right:4,top:'middle',itemWidth:10,itemHeight:10,textStyle:{color:'#AFC3E6',fontSize:11}},
+  series:[{type:'pie',radius:['46%','70%'],center:['36%','52%'],padAngle:2,itemStyle:{borderRadius:6,borderColor:'#050B1A',borderWidth:2},label:{show:false},emphasis:{scale:true,scaleSize:8,label:{show:true,formatter:'{b}\n{c}%',color:'#fff',fontSize:13,fontWeight:700}},data:r.struct.map(x=>({name:x[0],value:x[1]}))},
+   {type:'pie',radius:['76%','77.5%'],center:['36%','52%'],silent:true,label:{show:false},data:[{value:1,itemStyle:{color:'rgba(0,229,255,.35)'}}]}]},true);
+ chart('exportBar').setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'},...tipC,valueFormatter:v=>v+'%'},grid:{left:44,right:16,top:24,bottom:28},xAxis:{type:'category',data:r.exp.map(x=>x[0]),...axisC,splitLine:{show:false}},yAxis:{type:'value',...axisC},
+  series:[{type:'bar',name:'出口占比',data:r.exp.map(x=>x[1]),barWidth:'42%',itemStyle:{borderRadius:[6,6,0,0],color:grad('#00E5FF','rgba(124,58,237,.3)')},emphasis:{itemStyle:{color:'#FF7A1A'}},label:{show:true,position:'top',color:'#AFC3E6',fontSize:11,formatter:'{c}%'}}]},true);
+ const lv={h:'高风险',m:'关注',l:'机会'};$('#alCount').textContent=`${r.alerts.filter(a=>a[0]==='h').length} 条高风险`;
+ $('#alerts').innerHTML=r.alerts.map((a,i)=>`<div class="al" style="animation:slideIn .4s ${i*.08}s both"><span class="lv ${a[0]}">${lv[a[0]]}</span><div><div>${a[1]}</div><div class="d">${a[2]}</div></div><span class="v" style="color:${{h:'var(--red)',m:'#ffb37a',l:'var(--green)'}[a[0]]}">${a[3]}</span></div>`).join('')}
+$$('[data-y]').forEach(b=>b.onclick=()=>{$$('[data-y]').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.years=+b.dataset.y;renderDashboard()});
+/* ============ 全局搜索 ============ */
+const qi=$('#q'),sd=$('#sdrop');
+qi.oninput=()=>{S.q=qi.value;const v=qi.value.trim();if(S.page==='companies')renderGrid();if(!v){sd.classList.remove('show');return}const r=reg();
+ const cs=r.cities.filter(c=>[c.name,...c.ind,...c.prod].some(s=>s.toLowerCase().includes(v.toLowerCase())));const co=r.companies.filter(c=>matchQ(c,v)).slice(0,6);
+ sd.innerHTML=(cs.length?`<h6>城市 / 产业带</h6>`+cs.map(c=>`<div class="it" data-city="${c.name}"><span>📍 ${hl(c.name,v)}</span><em>${hl(c.ind.join(' / '),v)}</em></div>`).join(''):'')+(co.length?`<h6>企业</h6>`+co.map(c=>`<div class="it" data-co="${c.id}"><span>🏢 ${hl(c.name,v)}</span><em>${c.city} · ${hl(c.ind,v)}</em></div>`).join(''):'')+
+  (cs.length||co.length?`<div class="it" data-all="1" style="color:var(--cyan)"><span>在「找企业」中查看全部结果 →</span><em>Enter</em></div>`:`<div style="padding:18px;text-align:center;color:var(--muted)">未找到「${v}」相关结果，试试切换地区</div>`);sd.classList.add('show');
+ sd.querySelectorAll('.it').forEach(it=>it.onmousedown=e=>{e.preventDefault();sd.classList.remove('show');if(it.dataset.city){S.city=it.dataset.city;qi.value='';S.q='';if(S.page!=='overview')switchPage('overview');else{renderCity(true);renderMap()}}else if(it.dataset.co){openDetail(it.dataset.co)}else{S.f={city:'全部',ind:'全部',scale:'全部'};if(S.page!=='companies')switchPage('companies');else renderCompanies()}})};
+qi.onblur=()=>setTimeout(()=>sd.classList.remove('show'),120);qi.onfocus=()=>{if(qi.value)qi.oninput()};
+qi.onkeydown=e=>{if(e.key==='Enter'){sd.classList.remove('show');S.f={city:'全部',ind:'全部',scale:'全部'};if(S.page!=='companies')switchPage('companies');else renderCompanies()}if(e.key==='Escape')qi.blur()};
+addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();qi.focus()}if(e.key==='Escape')closeAll()});
+addEventListener('resize',()=>Object.values(charts).forEach(c=>c&&!c.isDisposed()&&c.resize()));
+/* 启动 */
+loadGeo('gd');loadGeo('us');renderOverview();renderCmp();
+</script>
+</body>
+</html>
